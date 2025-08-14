@@ -3,19 +3,14 @@
   "servePort": 34872,
   "tree": {
     "$className": "DataModel",
-
     "StarterPlayer": {
       "$className": "StarterPlayer",
-
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
-
         "Test": {
           "$path": "tests/Test.client.luau",
-
           "Satchel": {
             "$path": "src",
-
             "Packages": {
               "$path": "Packages"
             }

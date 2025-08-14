@@ -3,14 +3,16 @@
 
 --[[
 	Name: Satchel
-	Version: 1.3.2
+	Version: 1.3.2-edited
 	Description: Satchel is a modern open-source alternative to Roblox's default backpack. Satchel aims to be more customizable and easier to use than the default backpack while still having a "vanilla" feel.
 	By: @WinnersTakesAll on Roblox & @RyanLua on GitHub
+	Edited by: @mzqrbxabw587 on Roblox & @ttam-dev on GitHub
 
 	Acknowledgements (@Roblox):
 		@OnlyTwentyCharacters, @SolarCrane -- For creating the CoreGui script
 		@thebrickplanetboy -- For allowing me to republish his fork of the backpack system.
 		@ForeverHD -- Making Topbar Plus and open-sourcing it for everyone to use
+		@stravant -- For creating signal module
 
 	DevForum: https://devforum.roblox.com/t/2451549
 ]]
@@ -31,53 +33,53 @@ local VRService = game:GetService("VRService")
 local Players = game:GetService("Players")
 local PlayerGui: Instance = Players.LocalPlayer:WaitForChild("PlayerGui")
 
+local Signal: any = require(script:WaitForChild("Packages"):WaitForChild("goodsignal")) :: any
+
 local BackpackScript = {}
 
 BackpackScript.OpenClose = nil :: any -- Function to toggle open/close
 BackpackScript.IsOpen = false :: boolean
-BackpackScript.StateChanged = Instance.new("BindableEvent") :: BindableEvent -- Fires after any open/close, passes IsNowOpen
+BackpackScript.StateChanged = Signal.new() :: Signal.Signal<boolean> -- Fires after any open/close, passes IsNowOpen
 
 BackpackScript.ModuleName = "Backpack" :: string
 BackpackScript.KeepVRTopbarOpen = true :: boolean
 BackpackScript.VRIsExclusive = true :: boolean
 BackpackScript.VRClosesNonExclusive = true :: boolean
 
-BackpackScript.BackpackEmpty = Instance.new("BindableEvent") :: BindableEvent -- Fires when the backpack is empty (no tools
-BackpackScript.BackpackEmpty.Name = "BackpackEmpty"
+BackpackScript.BackpackEmpty = Signal.new() -- Fires when the backpack is empty (no tools
 
-BackpackScript.BackpackItemAdded = Instance.new("BindableEvent") :: BindableEvent -- Fires when an item is added to the backpack
-BackpackScript.BackpackItemAdded.Name = "BackpackAdded"
+BackpackScript.BackpackItemAdded = Signal.new() -- Fires when an item is added to the backpack
 
-BackpackScript.BackpackItemRemoved = Instance.new("BindableEvent") :: BindableEvent -- Fires when an item is removed from the backpack
-BackpackScript.BackpackItemRemoved.Name = "BackpackRemoved"
+BackpackScript.BackpackItemRemoved = Signal.new() -- Fires when an item is removed from the backpack
 
-local targetScript: ModuleScript = script
+local targetScript: ModuleScript = script :: ModuleScript
 
 -- Constants --
 local PREFERRED_TRANSPARENCY: number = GuiService.PreferredTransparency or 1
 
 -- Legacy behavior for backpack
 local LEGACY_EDGE_ENABLED: boolean = not targetScript:GetAttribute("OutlineEquipBorder") or false -- Instead of the edge selection being inset, it will be on the outlined.  LEGACY_PADDING must be enabled for this to work or this will do nothing
-local LEGACY_PADDING_ENABLED: boolean = targetScript:GetAttribute("InsetIconPadding") -- Instead of the icon taking up the full slot, it will be padded on each side.
+local LEGACY_PADDING_ENABLED: boolean = targetScript:GetAttribute("InsetIconPadding") :: boolean -- Instead of the icon taking up the full slot, it will be padded on each side.
 
 -- Background
-local BACKGROUND_TRANSPARENCY_DEFAULT: number = targetScript:GetAttribute("BackgroundTransparency") or 0.3
+local BACKGROUND_TRANSPARENCY_DEFAULT: number = targetScript:GetAttribute("BackgroundTransparency") :: number or 0.3
 local BACKGROUND_TRANSPARENCY: number = BACKGROUND_TRANSPARENCY_DEFAULT * PREFERRED_TRANSPARENCY
 local BACKGROUND_CORNER_RADIUS: UDim = UDim.new(0, 8)
-local BACKGROUND_COLOR: Color3 = targetScript:GetAttribute("BackgroundColor3")
+local BACKGROUND_COLOR: Color3 = targetScript:GetAttribute("BackgroundColor3") :: Color3
 	or Color3.new(25 / 255, 27 / 255, 29 / 255)
 
 -- Slots
-local SLOT_EQUIP_COLOR: Color3 = targetScript:GetAttribute("EquipBorderColor3") or Color3.new(0 / 255, 162 / 255, 1)
-local SLOT_LOCKED_TRANSPARENCY_DEFAULT: number = targetScript:GetAttribute("BackgroundTransparency") or 0.3 -- Locked means undraggable
+local SLOT_EQUIP_COLOR: Color3 = targetScript:GetAttribute("EquipBorderColor3") :: Color3
+	or Color3.new(0 / 255, 162 / 255, 1)
+local SLOT_LOCKED_TRANSPARENCY_DEFAULT: number = targetScript:GetAttribute("BackgroundTransparency") :: number or 0.3 -- Locked means undraggable
 local SLOT_LOCKED_TRANSPARENCY: number = SLOT_LOCKED_TRANSPARENCY_DEFAULT * PREFERRED_TRANSPARENCY
-local SLOT_EQUIP_THICKNESS: number = targetScript:GetAttribute("EquipBorderSizePixel") or 5 -- Relative
-local SLOT_CORNER_RADIUS: UDim = targetScript:GetAttribute("CornerRadius") or UDim.new(0, 8)
+local SLOT_EQUIP_THICKNESS: number = targetScript:GetAttribute("EquipBorderSizePixel") :: number or 5 -- Relative
+local SLOT_CORNER_RADIUS: UDim = targetScript:GetAttribute("CornerRadius") :: UDim or UDim.new(0, 8)
 local SLOT_BORDER_COLOR: Color3 = Color3.new(1, 1, 1) -- Appears when dragging
 
 -- Tooltips
 local TOOLTIP_CORNER_RADIUS: UDim = SLOT_CORNER_RADIUS - UDim.new(0, 5) or UDim.new(0, 3)
-local TOOLTIP_BACKGROUND_COLOR: Color3 = targetScript:GetAttribute("BackgroundColor3")
+local TOOLTIP_BACKGROUND_COLOR: Color3 = targetScript:GetAttribute("BackgroundColor3") :: Color3
 	or Color3.new(25 / 255, 27 / 255, 29 / 255)
 local TOOLTIP_PADDING: number = 4
 local TOOLTIP_HEIGHT: number = 16
@@ -101,9 +103,9 @@ local INVENTORY_HEADER_SIZE: number = 40
 local INVENTORY_ARROWS_BUFFER_VR: number = 40
 
 -- Text
-local TEXT_COLOR: Color3 = targetScript:GetAttribute("TextColor3") or Color3.new(1, 1, 1)
-local TEXT_STROKE_TRANSPARENCY: number = targetScript:GetAttribute("TextStrokeTransparency") or 0.5
-local TEXT_STROKE_COLOR: Color3 = targetScript:GetAttribute("TextStrokeColor3") or Color3.new(0, 0, 0)
+local TEXT_COLOR: Color3 = targetScript:GetAttribute("TextColor3") :: Color3 or Color3.new(1, 1, 1)
+local TEXT_STROKE_TRANSPARENCY: number = targetScript:GetAttribute("TextStrokeTransparency") :: number or 0.5
+local TEXT_STROKE_COLOR: Color3 = targetScript:GetAttribute("TextStrokeColor3") :: Color3 or Color3.new(0, 0, 0)
 
 -- Search
 local SEARCH_BACKGROUND_COLOR: Color3 = Color3.new(25 / 255, 27 / 255, 29 / 255)
@@ -121,9 +123,9 @@ local SEARCH_BUFFER_PIXELS: number = 5
 local SEARCH_WIDTH_PIXELS: number = 200
 
 -- Misc
-local FONT_FAMILY: Font = targetScript:GetAttribute("FontFace")
+local FONT_FAMILY: Font = targetScript:GetAttribute("FontFace") :: Font
 	or Font.new("rbxasset://fonts/families/BuilderSans.json")
-local FONT_SIZE: number = targetScript:GetAttribute("TextSize") or 16
+local FONT_SIZE: number = targetScript:GetAttribute("TextSize") :: number or 16
 local DROP_HOTKEY_VALUE: number = Enum.KeyCode.Backspace.Value
 local ZERO_KEY_VALUE: number = Enum.KeyCode.Zero.Value
 local DOUBLE_CLICK_TIME: number = 0.5
@@ -154,7 +156,7 @@ local GAMEPAD_INPUT_TYPES: { [Enum.UserInputType]: boolean } =
 -- Topbar logic
 local BackpackEnabled: boolean = true
 
-local Icon: any = require(script.Packages:WaitForChild("topbarplus"))
+local Icon: any = require(script:WaitForChild("Packages"):WaitForChild("topbarplus")) :: any
 
 local inventoryIcon: any = Icon.new()
 	:setName("Inventory")
@@ -1436,7 +1438,7 @@ function enableGamepadInventoryControl(): ()
 
 	-- Gaze select will automatically select the object for us!
 	if not UseGazeSelection() then
-		GuiService.SelectedObject = HotbarFrame:FindFirstChild("1")
+		GuiService.SelectedObject = HotbarFrame:FindFirstChild("1") :: GuiObject
 	end
 end
 
@@ -1494,7 +1496,8 @@ end
 
 local function OnIconChanged(enabled: boolean): ()
 	-- Check for enabling/disabling the whole thing
-	enabled = enabled and StarterGui:GetCore("TopbarEnabled")
+	--enabled = enabled and StarterGui:GetCore("TopbarEnabled")
+	enabled = enabled and pcall(StarterGui.GetCore, StarterGui, "TopbarEnabled")
 	WholeThingEnabled = enabled
 	MainFrame.Visible = enabled
 
@@ -2022,7 +2025,7 @@ do -- Make the Inventory expand/collapse arrow (unless TopBar)
 		end
 
 		for i: number = 1, NumberOfHotbarSlots do
-			if Slots[i].Frame == GuiService.SelectedObject and Slots[i].Tool then
+			if Slots[i].Frame :: any == GuiService.SelectedObject and Slots[i].Tool then
 				Slots[i]:MoveToInventory()
 				return
 			end
@@ -2142,7 +2145,7 @@ function BackpackScript:GetBackpackEnabled(): boolean
 end
 
 -- Returns the BindableEvent for when the backpack state changes
-function BackpackScript:GetStateChangedEvent(): BindableEvent
+function BackpackScript:GetStateChangedEvent(): Signal.Signal<boolean>
 	return BackpackScript.StateChanged
 end
 

@@ -1,0 +1,1 @@
+{"name":"satchel","className":"ModuleScript","filePaths":["src\\init.meta.json","src\\init.luau","default.project.json"],"children":[{"name":"Packages","className":"Folder","children":[{"name":"goodsignal","className":"ModuleScript","filePaths":["Packages\\goodsignal.lua"]},{"name":"topbarplus","className":"ModuleScript","filePaths":["Packages\\topbarplus.lua"]}]}]}
