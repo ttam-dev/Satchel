@@ -112,7 +112,7 @@ Satchel offers access to some of its internal methods and events for scripting p
 
 ## 🙏 Contributing
 
-We welcome all contributions from the community. If you would like to contribute, please see [CONTRIBUTING.md](.github/CONTRIBUTING.md) to get started on how to contribute to Satchel.
+We welcome all contributions from the community!
 
 When you contribute to Satchel you will be accredited for your contribution for everyone to see on this repository along with supporting the open-source community.
 
