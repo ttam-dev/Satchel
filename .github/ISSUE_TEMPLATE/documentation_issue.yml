@@ -1,8 +1,0 @@
-name: Help improve documentation
-description: Report issues in our documentation
-labels: ["documentation"]
-body:
-  - type: textarea
-    attributes:
-      label: Provide a description of requested docs changes
-      placeholder: Briefly describe which document needs to be corrected and why.
