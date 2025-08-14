@@ -12,7 +12,7 @@
 		@OnlyTwentyCharacters, @SolarCrane -- For creating the CoreGui script
 		@thebrickplanetboy -- For allowing me to republish his fork of the backpack system.
 		@ForeverHD -- Making Topbar Plus and open-sourcing it for everyone to use
-		@stravant -- For creating signal module
+		@stravant -- For creating Signal module
 
 	DevForum: https://devforum.roblox.com/t/2451549
 ]]
