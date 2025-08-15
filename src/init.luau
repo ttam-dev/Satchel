@@ -39,7 +39,7 @@ local BackpackScript = {}
 
 BackpackScript.OpenClose = nil :: any -- Function to toggle open/close
 BackpackScript.IsOpen = false :: boolean
-BackpackScript.StateChanged = Signal.new() :: Signal.Signal<boolean> -- Fires after any open/close, passes IsNowOpen
+BackpackScript.StateChanged = Signal.new() -- Fires after any open/close, passes IsNowOpen
 
 BackpackScript.ModuleName = "Backpack" :: string
 BackpackScript.KeepVRTopbarOpen = true :: boolean
@@ -2145,7 +2145,7 @@ function BackpackScript:GetBackpackEnabled(): boolean
 end
 
 -- Returns the BindableEvent for when the backpack state changes
-function BackpackScript:GetStateChangedEvent(): Signal.Signal<boolean>
+function BackpackScript:GetStateChangedEvent()
 	return BackpackScript.StateChanged
 end
 
