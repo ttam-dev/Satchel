@@ -1979,7 +1979,7 @@ do -- Search stuff
 	searchBox.Changed:Connect(onChanged)
 	searchBox.FocusLost:Connect(focusLost)
 
-	BackpackScript.StateChanged.Event:Connect(function(isNowOpen: boolean): ()
+	BackpackScript.StateChanged:Connect(function(isNowOpen: boolean): ()
 		-- InventoryIcon:getInstance("iconButton").Modal = isNowOpen -- Allows free mouse movement even in first person
 
 		if not isNowOpen then
